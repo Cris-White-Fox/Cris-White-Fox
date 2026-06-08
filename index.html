@@ -52,7 +52,7 @@
     header h2, header h3 { font-family: var(--font-writing); font-size: 18px; }
     .panel { display: none; flex: 1; flex-direction: column; overflow: hidden; background: var(--surface); }
     .panel.active { display: flex; }
-    .scroll-y { overflow-y: auto; flex: 1; padding: 16px; }
+    .scroll-y { overflow-y: auto; flex: 1; padding: 16px; -webkit-overflow-scrolling: touch; }
 
     /* Buttons & Controls */
     button {
@@ -104,11 +104,11 @@
     }
     dialog:not([open]) { display: none !important; }
     dialog::backdrop { background: rgba(0,0,0,0.4); }
-    dialog.large { max-width: 900px; height: 85vh; height: 85dvh; }
+    dialog.large { max-width: 900px; height: 85vh; height: 85dvh; overflow: hidden; }
     dialog.large[open] { display: flex; flex-direction: column; }
     dialog h4 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
     dialog p { color: var(--text-secondary); font-size: 13px; margin-bottom: 16px; }
-    .modal-actions { display: flex; gap: 12px; justify-content: flex-end; }
+    .modal-actions { display: flex; gap: 12px; justify-content: flex-end; flex-shrink: 0; }
 
     /* Context Tags */
     .chat-selected-context { padding: 8px 16px; border-top: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 6px; }
@@ -123,18 +123,20 @@
     .chat-main { flex: 1; display: flex; flex-direction: column; padding: 16px; overflow-y: auto; gap: 16px; }
 
     /* Diff Review Interface */
-    .diff-modal-layout { display: flex; flex: 1; overflow: hidden; gap: 16px; margin: 12px 0; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); }
-    .diff-sidebar { width: 180px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; padding: 12px; overflow-y: auto; flex-shrink: 0; }
-    .diff-list { display: flex; flex-direction: column; gap: 16px; overflow-y: auto; flex: 1; padding: 12px; }
-    .diff-item { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--surface); display: flex; flex-direction: column; }
+    .diff-modal-layout { display: flex; flex: 1; overflow: hidden; gap: 16px; margin: 12px 0; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); min-height: 0; }
+    .diff-sidebar { width: 180px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; padding: 12px; overflow-y: auto; flex-shrink: 0; -webkit-overflow-scrolling: touch; }
+    .diff-list { display: flex; flex-direction: column; gap: 16px; overflow-y: auto; flex: 1; padding: 12px; -webkit-overflow-scrolling: touch; min-height: 0; }
+    .diff-item { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--surface); display: flex; flex-direction: column; flex-shrink: 0; }
     .diff-item-header { padding: 10px 14px; background: var(--bg); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
     .diff-item-header label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
     .diff-item-header input[type="checkbox"] { accent-color: var(--accent); }
     .diff-text { padding: 14px; font-family: var(--font-writing); font-size: 15px; white-space: pre-wrap; line-height: 1.6; }
     .diff-text.original { background: #fff5f5; color: #c0392b; text-decoration: line-through; border-bottom: 1px dashed var(--border); }
-    textarea.diff-text.proposed-edit { width: 100%; border: none; outline: none; resize: none; background: #f4fbf7; color: #27ae60; min-height: 120px; }
+    
+    /* overflow: hidden on auto-sized textareas prevents browser gesture interception, allowing touch scrolling to bubble up */
+    textarea.diff-text.proposed-edit { width: 100%; border: none; outline: none; resize: none; background: #f4fbf7; color: #27ae60; min-height: 120px; overflow: hidden; }
     textarea.diff-text.proposed-edit:focus { background: #ebf9f0; box-shadow: inset 0 0 0 1px #2ddc76; }
-    textarea.diff-text.unmatched-edit { width: 100%; border: none; outline: none; resize: none; background: #fffcf5; color: #856404; min-height: 80px; border-bottom: 1px dashed var(--border); }
+    textarea.diff-text.unmatched-edit { width: 100%; border: none; outline: none; resize: none; background: #fffcf5; color: #856404; min-height: 80px; border-bottom: 1px dashed var(--border); overflow: hidden; }
 
     /* Save Indicator */
     .save-indicator {
@@ -160,6 +162,28 @@
       nav span { writing-mode: horizontal-tb; transform: none; font-size: 10px; }
       textarea { padding: 16px; font-size: 15px; }
       .diff-sidebar { display: none; }
+      
+      /* Mobile dialog improvements */
+      dialog {
+        padding: 16px;
+        width: 95%;
+      }
+      dialog.large {
+        height: 90dvh;
+        max-height: 90dvh;
+      }
+      .diff-modal-layout {
+        margin: 8px 0;
+        gap: 8px;
+      }
+      .diff-list {
+        padding: 8px;
+        gap: 12px;
+      }
+      .diff-text {
+        font-size: 14px;
+        padding: 10px;
+      }
     }
   </style>
 </head>
@@ -599,6 +623,7 @@
         bindAutosave(storyEditor, STORAGE_KEYS.mainText, () => updateWordCount(storyEditor, storyWordCount));
       }
 
+      // Plot Map Panel
       function initPlotmapPanel() {
         plotmapEditor.value = localStorage.getItem(STORAGE_KEYS.plotmap) || '';
         updateWordCount(plotmapEditor, plotmapWordCount);
