@@ -8,12 +8,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    *, *::before, *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
     :root {
       --bg: #FAF8F5;
       --surface: #FFFFFF;
@@ -22,1170 +16,307 @@
       --accent: #D4A574;
       --border: #E8E4DF;
       --danger: #E74C3C;
+      --warning: #E67E22;
+      --success: #2ECC71;
       --font-writing: 'Merriweather', Georgia, serif;
-      --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      --tab-panel-width: 56px;
+      --font-ui: 'Inter', system-ui, sans-serif;
     }
 
-    html, body {
-      height: 100%;
-      background: var(--bg);
-      color: var(--text-primary);
-      font-family: var(--font-ui);
-      font-size: 14px;
-      line-height: 1.5;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { height: 100vh; background: var(--bg); color: var(--text-primary); font-family: var(--font-ui); display: flex; overflow: hidden; }
 
-    .app {
-      display: flex;
-      height: 100vh;
-      overflow: hidden;
-    }
+    /* Layout & Panels */
+    main { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+    header { padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: var(--surface); flex-shrink: 0; }
+    header h2, header h3 { font-family: var(--font-writing); font-size: 18px; }
+    .panel { display: none; flex: 1; flex-direction: column; overflow: hidden; background: var(--surface); }
+    .panel.active { display: flex; }
+    .scroll-y { overflow-y: auto; flex: 1; padding: 16px; }
 
-    /* Main Content Area */
-    .main-content {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
+    /* Buttons & Controls */
+    button {
+      padding: 10px 16px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg);
+      color: var(--text-primary); cursor: pointer; font-family: var(--font-ui); font-size: 13px; font-weight: 500;
+      display: inline-flex; align-items: center; gap: 8px; transition: 0.15s;
     }
+    button:hover { background: var(--border); }
+    button.primary { background: var(--accent); color: white; border: none; }
+    button.primary:hover { background: #c49660; }
+    button.danger { color: var(--danger); }
+    button.danger:hover { background: #fdf2f2; }
+    button.success { background: var(--success); color: white; border: none; }
 
-    .panel-view {
-      display: none;
-      flex: 1;
-      overflow: hidden;
-    }
+    /* Inputs & Textareas */
+    input[type="text"], textarea { width: 100%; border: none; outline: none; background: transparent; font-family: var(--font-writing); color: var(--text-primary); }
+    input[type="text"] { padding: 16px 24px; border-bottom: 1px solid var(--border); font-size: 20px; font-weight: bold; }
+    input[type="text"]::placeholder, textarea::placeholder { color: var(--text-secondary); font-style: italic; }
+    textarea { padding: 24px; font-size: 16px; line-height: 1.8; resize: none; flex: 1; }
 
-    .panel-view.active {
-      display: flex;
-      flex-direction: column;
+    /* Navigation (Responsive Bar) */
+    nav { display: flex; background: var(--surface); border-left: 1px solid var(--border); width: 56px; flex-direction: column; }
+    nav button {
+      flex: 1; background: none; border: none; border-radius: 0; color: var(--text-secondary); height: 80px;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
     }
+    nav button:hover { background: var(--bg); color: var(--text-primary); }
+    nav button.active { color: var(--accent); background: var(--bg); }
+    nav span { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
 
-    .writing-container {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      background: var(--surface);
-    }
+    /* List & Selection Items */
+    .list-item { padding: 12px 16px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: 0.15s; font-size: 13px; }
+    .list-item:hover { background: var(--bg); }
+    .list-item.selected, .list-item.active { background: var(--bg); border-left: 3px solid var(--accent); }
+    .list-item .name.empty { color: var(--text-secondary); font-style: italic; }
+    .list-item input[type="radio"], .list-item input[type="checkbox"] { accent-color: var(--accent); }
 
-    .writing-header {
-      padding: 16px 24px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-shrink: 0;
-      background: var(--surface);
+    /* Dialogs / Modals */
+    dialog {
+      border: none; border-radius: 12px; padding: 24px; max-width: 450px; width: 90%; margin: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15); background: var(--surface); color: var(--text-primary); font-family: var(--font-ui);
     }
+    dialog:not([open]) { display: none !important; }
+    dialog::backdrop { background: rgba(0,0,0,0.4); }
+    dialog.large { max-width: 900px; height: 85vh; }
+    dialog.large[open] { display: flex; flex-direction: column; }
+    dialog h4 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+    dialog p { color: var(--text-secondary); font-size: 13px; margin-bottom: 16px; }
+    .modal-actions { display: flex; gap: 12px; justify-content: flex-end; }
 
-    .writing-header h2 {
-      font-family: var(--font-writing);
-      font-size: 18px;
-      font-weight: 700;
-    }
+    /* Context Tags */
+    .chat-selected-context { padding: 8px 16px; border-top: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 6px; }
+    .tag { padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    .tag.system { background: #e8f4ea; color: #2d7a3e; }
+    .tag.character { background: #e8f0fc; color: #3a5bb8; }
+    .tag.story { background: #fce8e8; color: #a83a7a; }
+    .tag.plotmap { background: #fce8f0; color: #a83a7a; }
 
-    .word-count {
-      font-size: 12px;
-      color: var(--text-secondary);
-    }
+    /* Chat Structure */
+    .chat-container { flex: 1; display: flex; overflow: hidden; }
+    .chat-main { flex: 1; display: flex; flex-direction: column; padding: 16px; overflow-y: auto; gap: 16px; }
 
-    .writing-textarea {
-      flex: 1;
-      width: 100%;
-      border: none;
-      outline: none;
-      resize: none;
-      padding: 24px 32px;
-      font-family: var(--font-writing);
-      font-size: 18px;
-      line-height: 1.8;
-      color: var(--text-primary);
-      background: var(--surface);
-    }
-
-    .writing-textarea::placeholder {
-      color: var(--text-secondary);
-      font-style: italic;
-    }
-
-    /* Tab Panel - Desktop (vertical on right) */
-    .tab-panel {
-      background: var(--surface);
-      border-left: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      width: var(--tab-panel-width);
-      flex-shrink: 0;
-      position: relative;
-    }
-
-    .tab-btn {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: none;
-      border: none;
-      border-bottom: 1px solid var(--border);
-      color: var(--text-secondary);
-      cursor: pointer;
-      transition: all 200ms ease-out;
-      min-height: 80px;
-    }
-
-    .tab-btn:last-child {
-      border-bottom: none;
-    }
-
-    .tab-btn:hover {
-      background: var(--bg);
-      color: var(--text-primary);
-    }
-
-    .tab-btn.active {
-      color: var(--accent);
-      background: var(--bg);
-    }
-
-    .tab-btn svg {
-      width: 24px;
-      height: 24px;
-      stroke-width: 1.5;
-    }
-
-    .tab-label {
-      writing-mode: vertical-rl;
-      text-orientation: mixed;
-      transform: rotate(180deg);
-      font-size: 11px;
-      font-weight: 500;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-    }
-
-    /* Mobile Horizontal Tabs */
-    .mobile-tabs {
-      display: none;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .mobile-tab-btn {
-      flex: 1;
-      padding: 14px 8px;
-      background: none;
-      border: none;
-      border-bottom: 2px solid transparent;
-      font-family: var(--font-ui);
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--text-secondary);
-      cursor: pointer;
-      transition: all 200ms ease-out;
-    }
-
-    .mobile-tab-btn:hover {
-      color: var(--text-primary);
-      background: var(--bg);
-    }
-
-    .mobile-tab-btn.active {
-      color: var(--accent);
-      border-bottom-color: var(--accent);
-    }
-
-    /* Character Panel Specific Styles */
-    .character-list-view {
-      flex: 1;
-      background: var(--surface);
-      border-radius: 8px;
-      box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
-      overflow: hidden;
-    }
-
-    .character-list-header {
-      padding: 20px 24px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .character-list-header h3 {
-      font-family: var(--font-writing);
-      font-size: 18px;
-      font-weight: 700;
-    }
-
-    .character-list {
-      padding: 16px;
-      overflow-y: auto;
-      flex: 1;
-    }
-
-    .character-list-item {
-      padding: 14px 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      transition: background 150ms;
-    }
-
-    .character-list-item:hover {
-      background: var(--bg);
-    }
-
-    .character-list-item.selected {
-      background: var(--bg);
-      border-left: 3px solid var(--accent);
-    }
-
-    .character-list-item .name {
-      font-weight: 500;
-    }
-
-    .character-list-item .name.empty {
-      color: var(--text-secondary);
-      font-style: italic;
-    }
-
-    .character-editor-view {
-      flex: 1;
-      background: var(--surface);
-      border-radius: 8px;
-      box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    .character-editor-header {
-      padding: 16px 24px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-shrink: 0;
-    }
-
-    .character-editor-header h3 {
-      font-family: var(--font-writing);
-      font-size: 16px;
-      font-weight: 700;
-    }
-
-    .back-btn {
-      background: none;
-      border: none;
-      color: var(--text-secondary);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 13px;
-      padding: 6px 10px;
-      border-radius: 4px;
-      transition: all 150ms;
-    }
-
-    .back-btn:hover {
-      background: var(--bg);
-      color: var(--text-primary);
-    }
-
-    .back-btn svg {
-      width: 16px;
-      height: 16px;
-    }
-
-    .delete-btn {
-      background: none;
-      border: none;
-      color: var(--text-secondary);
-      cursor: pointer;
-      padding: 8px;
-      border-radius: 4px;
-      transition: all 150ms;
-    }
-
-    .delete-btn:hover {
-      background: #fdf2f2;
-      color: var(--danger);
-    }
-
-    .delete-btn svg {
-      width: 20px;
-      height: 20px;
-      stroke-width: 1.5;
-    }
-
-    .character-name-input {
-      width: 100%;
-      padding: 20px 24px;
-      border: none;
-      border-bottom: 1px solid var(--border);
-      font-family: var(--font-writing);
-      font-size: 22px;
-      font-weight: 700;
-      color: var(--text-primary);
-      background: transparent;
-      outline: none;
-    }
-
-    .character-name-input::placeholder {
-      color: var(--text-secondary);
-      font-style: italic;
-      font-weight: 400;
-    }
-
-    .character-name-input:focus {
-      background: var(--bg);
-    }
-
-    .character-content-input {
-      flex: 1;
-      width: 100%;
-      border: none;
-      outline: none;
-      resize: none;
-      padding: 24px;
-      font-family: var(--font-writing);
-      font-size: 16px;
-      line-height: 1.8;
-      color: var(--text-primary);
-      background: transparent;
-    }
-
-    .character-content-input::placeholder {
-      color: var(--text-secondary);
-      font-style: italic;
-    }
-
-    .character-empty-state {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      color: var(--text-secondary);
-      padding: 32px;
-    }
-
-    .character-empty-state p {
-      margin-bottom: 16px;
-      max-width: 280px;
-    }
-
-    /* Confirmation Modal */
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0,0,0,0.4);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 2000;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 200ms, visibility 200ms;
-    }
-
-    .modal-overlay.visible {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    .modal-card {
-      background: var(--surface);
-      border-radius: 12px;
-      padding: 24px;
-      max-width: 360px;
-      width: 90%;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-    }
-
-    .modal-card h4 {
-      font-size: 16px;
-      font-weight: 600;
-      margin-bottom: 8px;
-    }
-
-    .modal-card p {
-      color: var(--text-secondary);
-      font-size: 14px;
-      margin-bottom: 20px;
-    }
-
-    .modal-actions {
-      display: flex;
-      gap: 12px;
-      justify-content: flex-end;
-    }
-
-    .modal-btn {
-      padding: 10px 20px;
-      border-radius: 6px;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 150ms;
-    }
-
-    .modal-btn.cancel {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      color: var(--text-primary);
-    }
-
-    .modal-btn.cancel:hover {
-      background: var(--border);
-    }
-
-    .modal-btn.delete {
-      background: var(--danger);
-      border: none;
-      color: white;
-    }
-
-    .modal-btn.delete:hover {
-      background: #c0392b;
-    }
+    /* Diff Review Interface */
+    .diff-modal-layout { display: flex; flex: 1; overflow: hidden; gap: 16px; margin: 12px 0; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); }
+    .diff-sidebar { width: 180px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; padding: 12px; overflow-y: auto; flex-shrink: 0; }
+    .diff-list { display: flex; flex-direction: column; gap: 16px; overflow-y: auto; flex: 1; padding: 12px; }
+    .diff-item { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--surface); display: flex; flex-direction: column; }
+    .diff-item-header { padding: 10px 14px; background: var(--bg); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
+    .diff-item-header label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    .diff-item-header input[type="checkbox"] { accent-color: var(--accent); }
+    .diff-text { padding: 14px; font-family: var(--font-writing); font-size: 15px; white-space: pre-wrap; line-height: 1.6; }
+    .diff-text.original { background: #fff5f5; color: #c0392b; text-decoration: line-through; border-bottom: 1px dashed var(--border); }
+    textarea.diff-text.proposed-edit { width: 100%; border: none; outline: none; resize: none; background: #f4fbf7; color: #27ae60; min-height: 120px; }
+    textarea.diff-text.proposed-edit:focus { background: #ebf9f0; box-shadow: inset 0 0 0 1px #2ddc76; }
+    textarea.diff-text.unmatched-edit { width: 100%; border: none; outline: none; resize: none; background: #fffcf5; color: #856404; min-height: 80px; border-bottom: 1px dashed var(--border); }
 
     /* Save Indicator */
     .save-indicator {
-      position: fixed;
-      bottom: 24px;
-      left: 24px;
-      padding: 8px 16px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      font-size: 12px;
-      color: var(--text-secondary);
-      opacity: 0;
-      transition: opacity 200ms ease-out;
-      pointer-events: none;
-      z-index: 100;
+      position: fixed; bottom: 80px; left: 24px; padding: 8px 16px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 4px; font-size: 12px; color: var(--text-secondary);
+      opacity: 0; pointer-events: none; z-index: 100; transition: opacity 0.2s;
     }
+    .save-indicator.visible { opacity: 1; }
 
-    .save-indicator.visible {
-      opacity: 1;
-    }
-
-    /* Add Character Button */
-    .add-character-btn {
-      width: 100%;
-      padding: 14px;
-      background: var(--accent);
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-family: var(--font-ui);
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: background 150ms;
-    }
-
-    .add-character-btn:hover {
-      background: #c49660;
-    }
-
-    .add-character-btn svg {
-      width: 18px;
-      height: 18px;
-    }
-
-    /* Chat Panel Styles */
-    .chat-container {
-      flex: 1;
-      display: flex;
-      overflow: hidden;
-    }
-
-    .chat-sidebar {
-      width: 280px;
-      background: var(--surface);
-      border-right: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      flex-shrink: 0;
-    }
-
-    .chat-sidebar-section {
-      padding: 16px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .chat-sidebar-section:last-child {
-      border-bottom: none;
-    }
-
-    .chat-sidebar-section h4 {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 12px;
-    }
-
-    .chat-sidebar-scroll {
-      max-height: 150px;
-      overflow-y: auto;
-    }
-
-    .chat-system-prompt-item,
-    .chat-character-item {
-      padding: 10px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: background 150ms;
-      font-size: 13px;
-    }
-
-    .chat-system-prompt-item:hover,
-    .chat-character-item:hover {
-      background: var(--bg);
-    }
-
-    .chat-system-prompt-item.selected,
-    .chat-character-item.selected {
-      background: var(--bg);
-      border-left: 3px solid var(--accent);
-    }
-
-    .chat-system-prompt-item input[type="checkbox"],
-    .chat-character-item input[type="checkbox"] {
-      accent-color: var(--accent);
-    }
-
-    .chat-system-prompt-item .delete-system-prompt {
-      margin-left: auto;
-      opacity: 0;
-      color: var(--text-secondary);
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 2px;
-      font-size: 12px;
-    }
-
-    .chat-checkbox-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
-      font-size: 13px;
-      padding: 8px 0;
-    }
-
-    .chat-checkbox-item input {
-      accent-color: var(--accent);
-    }
-
-    .chat-add-btn {
-      width: 100%;
-      padding: 10px;
-      background: var(--bg);
-      border: 1px dashed var(--border);
-      border-radius: 6px;
-      font-family: var(--font-ui);
-      font-size: 13px;
-      color: var(--text-secondary);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      margin-top: 12px;
-      transition: all 150ms;
-    }
-
-    .chat-add-btn:hover {
-      background: var(--border);
-      color: var(--text-primary);
-    }
-
-    .chat-add-btn svg {
-      width: 16px;
-      height: 16px;
-    }
-
-    /* System Prompt Modal */
-    .chat-system-prompt-name-input {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      font-family: var(--font-ui);
-      font-size: 14px;
-      margin-bottom: 12px;
-      outline: none;
-    }
-
-    .chat-system-prompt-name-input:focus {
-      border-color: var(--accent);
-    }
-
-    .chat-system-prompt-content-input {
-      width: 100%;
-      min-height: 150px;
-      padding: 12px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      font-family: var(--font-writing);
-      font-size: 14px;
-      line-height: 1.6;
-      resize: vertical;
-      outline: none;
-      margin-bottom: 16px;
-    }
-
-    .chat-system-prompt-content-input:focus {
-      border-color: var(--accent);
-    }
-
-    /* Responsive - Mobile */
     @media (max-width: 768px) {
-      .app {
-        flex-direction: column;
-      }
-
-      .tab-panel {
-        display: none;
-      }
-
-      .mobile-tabs {
-        display: flex;
-        order: -1;
-      }
-
-      .writing-textarea {
-        padding: 16px 20px;
-        font-size: 16px;
-      }
-
-      .tab-btn {
-        min-height: auto;
-        padding: 12px;
-      }
-
-      .tab-label {
-        display: none;
-      }
-
-      .writing-container {
-        padding: 16px;
-      }
-
-      .chat-container {
-        flex-direction: column;
-      }
-    }
-
-    /* Chat Settings Panel */
-    .chat-settings-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0,0,0,0.3);
-      z-index: 1500;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 200ms, visibility 200ms;
-    }
-
-    .chat-settings-overlay.visible {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    .chat-settings-panel {
-      position: fixed;
-      top: 0;
-      right: 0;
-      width: 320px;
-      max-width: 90vw;
-      height: 100vh;
-      background: var(--surface);
-      box-shadow: -4px 0 20px rgba(0,0,0,0.15);
-      z-index: 1501;
-      transform: translateX(100%);
-      transition: transform 250ms ease-out;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .chat-settings-panel.open {
-      transform: translateX(0);
-    }
-
-    .chat-settings-header {
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-shrink: 0;
-    }
-
-    .chat-settings-header h4 {
-      font-size: 16px;
-      font-weight: 600;
-    }
-
-    .chat-settings-close {
-      background: none;
-      border: none;
-      color: var(--text-secondary);
-      cursor: pointer;
-      padding: 4px;
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .chat-settings-close:hover {
-      background: var(--bg);
-      color: var(--text-primary);
-    }
-
-    .chat-settings-close svg {
-      width: 20px;
-      height: 20px;
-    }
-
-    .chat-settings-content {
-      flex: 1;
-      overflow-y: auto;
-      padding: 16px 20px;
-    }
-
-    .chat-settings-section {
-      margin-bottom: 24px;
-    }
-
-    .chat-settings-section:last-child {
-      margin-bottom: 0;
-    }
-
-    .chat-settings-section h5 {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 10px;
-    }
-
-    .chat-settings-item {
-      padding: 10px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: background 150ms;
-      font-size: 13px;
-    }
-
-    .chat-settings-item:hover {
-      background: var(--bg);
-    }
-
-    .chat-settings-item.selected {
-      background: var(--bg);
-      border-left: 3px solid var(--accent);
-    }
-
-    .chat-settings-item input[type="radio"],
-    .chat-settings-item input[type="checkbox"] {
-      accent-color: var(--accent);
-    }
-
-    .chat-settings-item .delete-prompt-btn {
-      margin-left: auto;
-      opacity: 0;
-      color: var(--text-secondary);
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 2px;
-      font-size: 12px;
-    }
-
-
-    /* Chat Main Area */
-    .chat-main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      padding: 16px;
-      overflow: hidden;
-    }
-
-    .chat-prompt-area {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      background: var(--surface);
-      border-radius: 8px;
-      box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
-      overflow: hidden;
-    }
-
-    .chat-prompt-header {
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 13px;
-      font-weight: 500;
-    }
-
-    .chat-settings-btn {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 12px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      font-family: var(--font-ui);
-      font-size: 13px;
-      color: var(--text-primary);
-      cursor: pointer;
-      transition: all 150ms;
-    }
-
-    .chat-settings-btn:hover {
-      background: var(--border);
-    }
-
-    .chat-settings-btn svg {
-      width: 16px;
-      height: 16px;
-    }
-
-    .chat-copy-btn {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 12px;
-      background: var(--accent);
-      color: white;
-      border: none;
-      border-radius: 4px;
-      font-family: var(--font-ui);
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: background 150ms;
-    }
-
-    .chat-copy-btn:hover {
-      background: #c49660;
-    }
-
-    .chat-copy-btn.copied {
-      background: #27ae60;
-    }
-
-    .chat-copy-btn svg {
-      width: 16px;
-      height: 16px;
-    }
-
-    .chat-prompt-input {
-      flex: 1;
-      width: 100%;
-      border: none;
-      outline: none;
-      resize: none;
-      padding: 16px;
-      font-family: var(--font-writing);
-      font-size: 15px;
-      line-height: 1.7;
-      color: var(--text-primary);
-      background: transparent;
-    }
-
-    .chat-prompt-input::placeholder {
-      color: var(--text-secondary);
-      font-style: italic;
-    }
-
-    .chat-selected-context {
-      padding: 8px 16px;
-      border-top: 1px solid var(--border);
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      font-size: 12px;
-    }
-
-    .chat-context-tag {
-      padding: 3px 8px;
-      background: var(--bg);
-      border-radius: 4px;
-      color: var(--text-secondary);
-    }
-
-    .chat-context-tag.system-prompt {
-      background: #e8f4ea;
-      color: #2d7a3e;
-    }
-
-    .chat-context-tag.character {
-      background: #e8f0fc;
-      color: #3a5bb8;
-    }
-
-    .chat-context-tag.story {
-      background: #fce8e8;
-      color: #a83a3a;
-    }
-
-    .chat-context-tag.plotmap {
-      background: #fce8f0;
-      color: #a83a7a;
+      body { flex-direction: column; }
+      nav { width: 100%; height: 56px; flex-direction: row; border-left: none; border-top: 1px solid var(--border); order: 1; }
+      nav button { height: 100%; }
+      nav span { writing-mode: horizontal-tb; transform: none; font-size: 10px; }
+      textarea { padding: 16px; font-size: 15px; }
+      .diff-sidebar { display: none; }
     }
   </style>
 </head>
 <body>
-  <div class="app">
-    <main class="main-content">
-      <!-- Story Panel -->
-      <div class="panel-view active" id="story-panel">
-        <div class="writing-container">
-          <header class="writing-header">
-            <h2>Story</h2>
-            <span class="word-count" id="storyWordCount">0 words</span>
-          </header>
-          <textarea
-            class="writing-textarea"
-            id="storyEditor"
-            placeholder="Once upon a time..."
-          ></textarea>
+  <main class="main-content">
+    <!-- Story Panel -->
+    <div class="panel active" id="story-panel">
+      <header>
+        <h2>Story</h2>
+        <span class="word-count" id="storyWordCount">0 words</span>
+      </header>
+      <textarea id="storyEditor" placeholder="Once upon a time..."></textarea>
+    </div>
+
+    <!-- Character Panel -->
+    <div class="panel" id="character-panel">
+      <div id="characterListView" style="display: flex; flex-direction: column; flex: 1;">
+        <header><h3>Characters</h3></header>
+        <div class="scroll-y" id="characterList"></div>
+        <div style="padding: 16px; border-top: 1px solid var(--border);">
+          <button class="primary" id="addCharacterBtn" style="width: 100%; justify-content: center;">Create New Character</button>
         </div>
       </div>
 
-      <!-- Character Panel -->
-      <div class="panel-view" id="character-panel">
-        <!-- Character List View -->
-        <div class="writing-container" id="characterListView">
-          <div class="character-list-view">
-            <div class="character-list-header">
-              <h3>Characters</h3>
+      <div id="characterEditorView" style="display: none; flex-direction: column; flex: 1;">
+        <header>
+          <button id="backToListBtn">← Back</button>
+          <button class="danger" id="deleteCharacterBtn" title="Delete character">Delete</button>
+        </header>
+        <input type="text" id="characterNameInput" placeholder="Character name">
+        <textarea id="characterContentInput" placeholder="Write details..."></textarea>
+      </div>
+    </div>
+
+    <!-- Plot Map Panel -->
+    <div class="panel" id="plotmap-panel">
+      <header>
+        <h2>Plot Map</h2>
+        <span class="word-count" id="plotmapWordCount">0 words</span>
+      </header>
+      <textarea id="plotmapEditor" placeholder="Jot down key events, scenes, and plot points..."></textarea>
+    </div>
+
+    <!-- Chat Panel -->
+    <div class="panel" id="chat-panel">
+      <div class="chat-container">
+        <div class="chat-main">
+          <!-- Generation Panel -->
+          <div class="diff-item" style="flex: 1; min-height: 200px;">
+            <div class="diff-item-header">
+              <button id="chatSettingsBtn">Context Settings</button>
+              <button class="primary" id="copyPromptBtn">Copy Prompt</button>
             </div>
-            <div class="character-list" id="characterList"></div>
-            <div style="padding: 16px; border-top: 1px solid var(--border);">
-              <button class="add-character-btn" id="addCharacterBtn">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
-                Create New Character
-              </button>
+            <textarea id="chatPromptInput" placeholder="Write instructions or feedback..."></textarea>
+            <div class="chat-selected-context" id="chatSelectedContext"></div>
+          </div>
+
+          <!-- Application Panel -->
+          <div class="diff-item" style="flex: 1; min-height: 200px;">
+            <div class="diff-item-header">
+              <span style="font-weight: 600;">Apply LLM Response</span>
+              <button class="success" id="applyEditsBtn">Review Edits</button>
             </div>
+            <textarea id="chatResponseInput" placeholder="Paste generated blocks containing SEARCH/REPLACE blocks here..."></textarea>
           </div>
-        </div>
-
-        <!-- Character Editor View -->
-        <div class="writing-container" id="characterEditorView" style="display: none;">
-          <div class="character-editor-view">
-            <div class="character-editor-header">
-              <button class="back-btn" id="backToListBtn">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-                </svg>
-                Back
-              </button>
-              <button class="delete-btn" id="deleteCharacterBtn" title="Delete character">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                </svg>
-              </button>
-            </div>
-            <input
-              type="text"
-              class="character-name-input"
-              id="characterNameInput"
-              placeholder="Character name"
-            >
-            <textarea
-              class="character-content-input"
-              id="characterContentInput"
-              placeholder="Write your character's story, backstory, and details..."
-            ></textarea>
-          </div>
-        </div>
-      </div>
-
-      <!-- Plot Map Panel -->
-      <div class="panel-view" id="plotmap-panel">
-        <div class="writing-container">
-          <header class="writing-header">
-            <h2>Plot Map</h2>
-            <span class="word-count" id="plotmapWordCount">0 words</span>
-          </header>
-          <textarea
-            class="writing-textarea"
-            id="plotmapEditor"
-            placeholder="Jot down key events, scenes, and plot points..."
-          ></textarea>
-        </div>
-      </div>
-
-      <!-- Chat Panel -->
-      <div class="panel-view" id="chat-panel">
-        <div class="chat-container">
-          <div class="chat-main">
-            <div class="chat-prompt-area">
-              <div class="chat-prompt-header">
-                <button class="chat-settings-btn" id="chatSettingsBtn">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  Context Settings
-                </button>
-                <button class="chat-copy-btn" id="copyPromptBtn">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9.75a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
-                  </svg>
-                  Copy to Clipboard
-                </button>
-              </div>
-              <textarea
-                class="chat-prompt-input"
-                id="chatPromptInput"
-                placeholder="Write your prompt here... Use the Context Settings button to add system prompts, characters, story content, or plot map to your prompt."
-              ></textarea>
-              <div class="chat-selected-context" id="chatSelectedContext"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Chat Settings Overlay -->
-      <div class="chat-settings-overlay" id="chatSettingsOverlay"></div>
-
-      <!-- Chat Settings Panel -->
-      <div class="chat-settings-panel" id="chatSettingsPanel">
-        <div class="chat-settings-header">
-          <h4>Context Settings</h4>
-          <button class="chat-settings-close" id="chatSettingsClose">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        <div class="chat-settings-content">
-          <div class="chat-settings-section">
-            <h5>System Prompt (select one)</h5>
-            <div id="chatSystemPromptList"></div>
-            <button class="chat-add-btn" id="addSystemPromptBtn">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-              </svg>
-              Add Prompt
-            </button>
-          </div>
-
-          <div class="chat-settings-section">
-            <h5>Characters (select multiple)</h5>
-            <div id="chatCharacterList"></div>
-          </div>
-
-          <div class="chat-settings-section">
-            <h5>Story Content</h5>
-            <label class="chat-settings-item">
-              <input type="checkbox" id="chatIncludeStory">
-              <span>Main Story</span>
-            </label>
-          </div>
-
-          <div class="chat-settings-section">
-            <h5>Plot Map</h5>
-            <label class="chat-settings-item">
-              <input type="checkbox" id="chatIncludePlotmap">
-              <span>Plot Map</span>
-            </label>
-          </div>
-        </div>
-      </div>
-
-      <!-- Mobile Tab Bar -->
-      <nav class="mobile-tabs">
-        <button class="mobile-tab-btn active" data-tab="story">Story</button>
-        <button class="mobile-tab-btn" data-tab="character">Character</button>
-        <button class="mobile-tab-btn" data-tab="plotmap">Plot Map</button>
-        <button class="mobile-tab-btn" data-tab="chat">Chat</button>
-      </nav>
-    </main>
-
-    <!-- Desktop Vertical Tab Panel -->
-    <nav class="tab-panel">
-      <button class="tab-btn active" data-tab="story" title="Story">
-        <span class="tab-label">Story</span>
-      </button>
-      <button class="tab-btn" data-tab="character" title="Character">
-        <span class="tab-label">Character</span>
-      </button>
-      <button class="tab-btn" data-tab="plotmap" title="Plot Map">
-        <span class="tab-label">Plot</span>
-      </button>
-      <button class="tab-btn" data-tab="chat" title="Chat">
-        <span class="tab-label">Chat</span>
-      </button>
-    </nav>
-
-    <!-- Delete Confirmation Modal -->
-    <div class="modal-overlay" id="deleteModal">
-      <div class="modal-card">
-        <h4>Delete this character?</h4>
-        <p>This action cannot be undone. All content for this character will be lost.</p>
-        <div class="modal-actions">
-          <button class="modal-btn cancel" id="cancelDeleteBtn">Cancel</button>
-          <button class="modal-btn delete" id="confirmDeleteBtn">Delete</button>
         </div>
       </div>
     </div>
 
-    <!-- System Prompt Modal -->
-    <div class="modal-overlay" id="systemPromptModal">
-      <div class="modal-card" style="max-width: 500px;">
-        <h4 id="systemPromptModalTitle">Add System Prompt</h4>
-        <input type="text" class="chat-system-prompt-name-input" id="systemPromptNameInput" placeholder="Prompt name (e.g., 'Character Card Editor')">
-        <textarea class="chat-system-prompt-content-input" id="systemPromptContentInput" placeholder="System prompt content..."></textarea>
-        <div class="modal-actions">
-          <button class="modal-btn cancel" id="cancelSystemPromptBtn">Cancel</button>
-          <button class="modal-btn delete" id="deleteSystemPromptBtn" style="display: none;">Delete</button>
-          <button class="modal-btn confirm" id="saveSystemPromptBtn">Save</button>
+    <!-- Project Panel -->
+    <div class="panel" id="project-panel">
+      <header>
+        <h2>Project Management</h2>
+      </header>
+      <div class="scroll-y" style="display: flex; flex-direction: column; gap: 24px; max-width: 600px; margin: 0 auto; width: 100%;">
+        <div style="border: 1px solid var(--border); border-radius: 8px; padding: 20px; background: var(--surface); display: flex; flex-direction: column; gap: 12px; margin-top: 16px;">
+          <h4 style="font-size: 15px; font-weight: 600;">Export Project</h4>
+          <p style="color: var(--text-secondary); font-size: 13px; line-height: 1.5;">Save all project files (story, plot map, characters, custom system prompts, and chat parameters) locally as a single JSON file.</p>
+          <button class="primary" id="exportProjectBtn" style="width: fit-content; margin-top: 4px;">Export to JSON File</button>
+        </div>
+
+        <div style="border: 1px solid var(--border); border-radius: 8px; padding: 20px; background: var(--surface); display: flex; flex-direction: column; gap: 12px;">
+          <h4 style="font-size: 15px; font-weight: 600;">Import Project</h4>
+          <p style="color: var(--text-secondary); font-size: 13px; line-height: 1.5;">Load a previously exported JSON project file into your workspace. Note: Loading a project will replace all current work.</p>
+          <input type="file" id="importProjectFile" accept=".json" style="display: none;">
+          <button class="success" id="importProjectBtn" style="width: fit-content; margin-top: 4px;">Import JSON File</button>
+        </div>
+
+        <div style="border: 1px solid var(--border); border-radius: 8px; padding: 20px; background: var(--surface); display: flex; flex-direction: column; gap: 12px; border-color: rgba(231,76,60,0.3);">
+          <h4 style="font-size: 15px; font-weight: 600; color: var(--danger);">Reset Project</h4>
+          <p style="color: var(--text-secondary); font-size: 13px; line-height: 1.5;">Start a new story workspace. This deletes all text fields, character records, and custom system prompts permanently.</p>
+          <button class="danger" id="newProjectBtn" style="width: fit-content; margin-top: 4px;">Clear and Start New</button>
         </div>
       </div>
     </div>
+
+    <!-- Context Settings dialog -->
+    <dialog id="chatSettingsPanel">
+      <h4>Context Settings</h4>
+      <div style="margin: 16px 0; max-height: 60vh; overflow-y: auto; display: flex; flex-direction: column; gap: 12px;">
+        <div>
+          <h5 style="font-size:11px; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">System Prompt</h5>
+          <div id="chatSystemPromptList"></div>
+          <button class="primary" id="addSystemPromptBtn" style="margin-top: 8px; width:100%; justify-content:center;">Add Prompt</button>
+        </div>
+        <div>
+          <h5 style="font-size:11px; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Characters</h5>
+          <div id="chatCharacterList"></div>
+        </div>
+        <div>
+          <h5 style="font-size:11px; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Story Content</h5>
+          <label class="list-item">
+            <input type="checkbox" id="chatIncludeStory"> <span>Main Story</span>
+          </label>
+        </div>
+        <div>
+          <h5 style="font-size:11px; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Plot Map</h5>
+          <label class="list-item">
+            <input type="checkbox" id="chatIncludePlotmap"> <span>Plot Map</span>
+          </label>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="primary" id="chatSettingsClose">Done</button>
+      </div>
+    </dialog>
+
+    <!-- Delete Confirmation -->
+    <dialog id="deleteModal">
+      <h4>Delete this character?</h4>
+      <p>This action cannot be undone.</p>
+      <div class="modal-actions">
+        <button class="cancel" id="cancelDeleteBtn">Cancel</button>
+        <button class="danger" id="confirmDeleteBtn">Delete</button>
+      </div>
+    </dialog>
+
+    <!-- System Prompt Editor -->
+    <dialog id="systemPromptModal">
+      <h4 id="systemPromptModalTitle">Add System Prompt</h4>
+      <input type="text" id="systemPromptNameInput" placeholder="Prompt name">
+      <textarea id="systemPromptContentInput" placeholder="System prompt content..." style="min-height: 150px; border: 1px solid var(--border); margin: 12px 0; border-radius: 6px;"></textarea>
+      <div class="modal-actions">
+        <button class="cancel" id="cancelSystemPromptBtn">Cancel</button>
+        <button class="danger" id="deleteSystemPromptBtn" style="display: none;">Delete</button>
+        <button class="primary" id="saveSystemPromptBtn">Save</button>
+      </div>
+    </dialog>
+
+    <!-- Diff Preview Modal -->
+    <dialog id="diffModal" class="large">
+      <h4>Review Proposed Changes</h4>
+      <p>Review changes below. Selectively toggle matching cards and edit green boxes before finalizing.</p>
+      <div class="diff-modal-layout">
+        <div class="diff-sidebar" id="diffSidebar"></div>
+        <div class="diff-list" id="diffList"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="cancel" id="cancelDiffBtn">Discard All</button>
+        <button class="success" id="confirmDiffBtn">Apply Changes</button>
+      </div>
+    </dialog>
+
+    <!-- New Project Confirmation Dialog -->
+    <dialog id="newProjectModal">
+      <h4>Start a New Project?</h4>
+      <p style="margin-top: 8px; line-height: 1.5;">This will permanently erase all your current story text, characters, plot map, and settings. This action cannot be undone.</p>
+      <div class="modal-actions" style="margin-top: 16px;">
+        <button class="cancel" id="cancelNewProjectBtn">Cancel</button>
+        <button class="danger" id="confirmNewProjectBtn">Clear Workspace</button>
+      </div>
+    </dialog>
+
+    <!-- Import Confirmation Dialog -->
+    <dialog id="importModal">
+      <h4>Import Project File?</h4>
+      <p style="margin-top: 8px; line-height: 1.5;">This will overwrite all active data in your current workspace. Any unsaved edits will be lost forever.</p>
+      <div class="modal-actions" style="margin-top: 16px;">
+        <button class="cancel" id="cancelImportBtn">Cancel</button>
+        <button class="success" id="confirmImportBtn">Proceed with Import</button>
+      </div>
+    </dialog>
 
     <div class="save-indicator" id="saveIndicator">Saved</div>
-  </div>
+  </main>
+
+  <!-- Responsive Navigation -->
+  <nav>
+    <button class="active" data-tab="story"><span>Story</span></button>
+    <button data-tab="character"><span>Character</span></button>
+    <button data-tab="plotmap"><span>Plot</span></button>
+    <button data-tab="chat"><span>Chat</span></button>
+    <button data-tab="project"><span>Project</span></button>
+  </nav>
 
   <script>
     (function() {
@@ -1195,43 +326,31 @@
         mainText: 'storywriter_maintext',
         characters: 'storywriter_characters',
         plotmap: 'storywriter_plotmap',
-        systemPrompts: 'storywriter_systemprompts'
+        systemPrompts: 'storywriter_systemprompts',
+        chatPrompt: 'storywriter_chat_prompt'
       };
 
       // DOM Elements
-      const desktopTabBtns = document.querySelectorAll('.tab-panel .tab-btn');
-      const mobileTabBtns = document.querySelectorAll('.mobile-tab-btn');
-      const panelViews = document.querySelectorAll('.panel-view');
-      
       const storyEditor = document.getElementById('storyEditor');
       const storyWordCount = document.getElementById('storyWordCount');
-      
       const plotmapEditor = document.getElementById('plotmapEditor');
       const plotmapWordCount = document.getElementById('plotmapWordCount');
-      
       const saveIndicator = document.getElementById('saveIndicator');
       
-      // Character panel elements
       const characterListView = document.getElementById('characterListView');
       const characterEditorView = document.getElementById('characterEditorView');
       const characterList = document.getElementById('characterList');
-      const addCharacterBtn = document.getElementById('addCharacterBtn');
-      const backToListBtn = document.getElementById('backToListBtn');
-      const deleteCharacterBtn = document.getElementById('deleteCharacterBtn');
       const characterNameInput = document.getElementById('characterNameInput');
       const characterContentInput = document.getElementById('characterContentInput');
-      const deleteModal = document.getElementById('deleteModal');
-      const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
-      const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
 
       let characters = [];
       let currentCharacterId = null;
+      const selectedChatCharacterIds = new Set();
+      let selectedSystemPromptId = "";
 
       // Utility Functions
-      function generateId() {
-        return Date.now().toString(36) + Math.random().toString(36).substr(2);
-      }
-
+      const generateId = () => Date.now().toString(36) + Math.random().toString(36).substr(2);
+      
       function debounce(fn, delay) {
         let timeout;
         return function(...args) {
@@ -1240,145 +359,124 @@
         };
       }
 
-      function countWords(text) {
-        const trimmed = text.trim();
-        if (!trimmed) return 0;
-        return trimmed.split(/\s+/).length;
-      }
+      const countWords = text => text.trim() ? text.trim().split(/\s+/).length : 0;
 
       function showSaveIndicator() {
         saveIndicator.classList.add('visible');
-        setTimeout(() => {
-          saveIndicator.classList.remove('visible');
-        }, 1500);
+        setTimeout(() => saveIndicator.classList.remove('visible'), 1500);
+      }
+
+      const toggleModal = (id, visible) => {
+        const dialog = document.getElementById(id);
+        visible ? dialog.showModal() : dialog.close();
+      };
+
+      // Unified Autosave Binder
+      function bindAutosave(element, storageKey, onInput) {
+        const debouncedSave = debounce(() => {
+          localStorage.setItem(storageKey, element.value);
+          showSaveIndicator();
+        }, 500);
+        element.addEventListener('input', () => {
+          if (onInput) onInput();
+          debouncedSave();
+        });
       }
 
       // Tab Switching
       function switchTab(tabId) {
-        // Save current character before switching
-        if (currentCharacterId && tabId !== 'character') {
-          saveCurrentCharacter();
-        }
+        if (currentCharacterId && tabId !== 'character') saveCurrentCharacter();
 
-        desktopTabBtns.forEach(btn => {
+        document.querySelectorAll('nav button').forEach(btn => {
           btn.classList.toggle('active', btn.dataset.tab === tabId);
         });
-        mobileTabBtns.forEach(btn => {
-          btn.classList.toggle('active', btn.dataset.tab === tabId);
-        });
-        panelViews.forEach(view => {
+        document.querySelectorAll('.panel').forEach(view => {
           view.classList.toggle('active', view.id === `${tabId}-panel`);
         });
 
-        // Handle character view state
         if (tabId === 'character') {
-          if (currentCharacterId) {
-            showCharacterEditor();
-          } else {
-            showCharacterList();
-          }
+          currentCharacterId ? showCharacterEditor() : showCharacterList();
         }
       }
 
       function initTabs() {
-        const allTabBtns = [...desktopTabBtns, ...mobileTabBtns];
-        allTabBtns.forEach(btn => {
-          btn.addEventListener('click', () => {
-            switchTab(btn.dataset.tab);
-          });
+        document.querySelectorAll('nav button').forEach(btn => {
+          btn.addEventListener('click', () => switchTab(btn.dataset.tab));
         });
       }
 
-      // Character List View
-      function showCharacterList() {
+      // Character Panel Views
+      const showCharacterList = () => {
         characterListView.style.display = 'flex';
         characterEditorView.style.display = 'none';
         renderCharacterList();
-      }
+      };
 
-      function showCharacterEditor() {
+      const showCharacterEditor = () => {
         characterListView.style.display = 'none';
         characterEditorView.style.display = 'flex';
-      }
+      };
 
       function renderCharacterList() {
-        characterList.innerHTML = '';
-        
         if (characters.length === 0) {
-          characterList.innerHTML = `
-            <div class="character-empty-state">
-              <p>No characters yet. Create your first character to get started.</p>
-            </div>
-          `;
-        } else {
-          characters.forEach(char => {
-            const item = document.createElement('div');
-            item.className = 'character-list-item';
-            item.dataset.id = char.id;
-            
-            const nameSpan = document.createElement('span');
-            nameSpan.className = 'name' + (char.name ? '' : ' empty');
-            nameSpan.textContent = char.name || 'Unnamed Character';
-            
-            item.appendChild(nameSpan);
-            item.addEventListener('click', () => selectCharacter(char.id));
-            
-            characterList.appendChild(item);
-          });
+          characterList.innerHTML = `<div style="text-align:center; padding:32px; color:var(--text-secondary);">No characters yet.</div>`;
+          return;
         }
+        characterList.innerHTML = characters.map(char => `
+          <div class="list-item" data-id="${char.id}">
+            <span class="name ${char.name ? '' : 'empty'}">${char.name || 'Unnamed Character'}</span>
+          </div>`).join('');
+
+        characterList.querySelectorAll('.list-item').forEach(item => {
+          item.addEventListener('click', () => selectCharacter(item.dataset.id));
+        });
       }
 
       // Character CRUD
-      function loadCharacters() {
+      const loadCharacters = () => {
         try {
-          const data = localStorage.getItem(STORAGE_KEYS.characters);
-          characters = data ? JSON.parse(data) : [];
+          characters = JSON.parse(localStorage.getItem(STORAGE_KEYS.characters)) || [];
         } catch (e) {
           characters = [];
         }
+      };
+
+      function autoResizeTextarea(textarea) {
+        textarea.style.height = 'auto';
+        const height = textarea.scrollHeight;
+        if (height > 0) textarea.style.height = height + 'px';
       }
 
       function saveCharacters() {
         localStorage.setItem(STORAGE_KEYS.characters, JSON.stringify(characters));
         showSaveIndicator();
+        renderChatCharacterList();
       }
 
       function selectCharacter(id) {
         saveCurrentCharacter();
         currentCharacterId = id;
-        
         const char = characters.find(c => c.id === id);
         if (char) {
           characterNameInput.value = char.name || '';
           characterContentInput.value = char.content || '';
         }
-        
         showCharacterEditor();
         characterNameInput.focus();
       }
 
       function createCharacter() {
         saveCurrentCharacter();
-        
-        const newChar = {
-          id: generateId(),
-          name: '',
-          content: ''
-        };
+        const newChar = { id: generateId(), name: '', content: '' };
         characters.push(newChar);
         saveCharacters();
-        
         selectCharacter(newChar.id);
-        characterNameInput.focus();
       }
 
-      const debouncedSaveCharacter = debounce(() => {
-        saveCurrentCharacter();
-      }, 500);
+      const debouncedSaveCharacter = debounce(saveCurrentCharacter, 500);
 
       function saveCurrentCharacter() {
         if (!currentCharacterId) return;
-        
         const char = characters.find(c => c.id === currentCharacterId);
         if (char) {
           char.name = characterNameInput.value;
@@ -1389,162 +487,130 @@
 
       function deleteCharacter() {
         if (!currentCharacterId) return;
-        
+        selectedChatCharacterIds.delete(currentCharacterId);
         characters = characters.filter(c => c.id !== currentCharacterId);
         saveCharacters();
         currentCharacterId = null;
-        
-        characterNameInput.value = '';
-        characterContentInput.value = '';
-        
         showCharacterList();
-        hideDeleteModal();
+        toggleModal('deleteModal', false);
+        updateSelectedContextTags();
       }
 
-      // Delete Modal
-      function showDeleteModal() {
-        deleteModal.classList.add('visible');
-      }
-
-      function hideDeleteModal() {
-        deleteModal.classList.remove('visible');
-      }
-
-      // Event Listeners for Character Panel
       function initCharacterPanel() {
         loadCharacters();
-        
-        addCharacterBtn.addEventListener('click', () => {
+        document.getElementById('addCharacterBtn').addEventListener('click', () => {
           createCharacter();
           switchTab('character');
         });
-        
-        backToListBtn.addEventListener('click', () => {
+        document.getElementById('backToListBtn').addEventListener('click', () => {
           saveCurrentCharacter();
           currentCharacterId = null;
           showCharacterList();
         });
-        
-        deleteCharacterBtn.addEventListener('click', showDeleteModal);
-        cancelDeleteBtn.addEventListener('click', hideDeleteModal);
-        confirmDeleteBtn.addEventListener('click', deleteCharacter);
-        
-        // Close modal on overlay click
-        deleteModal.addEventListener('click', (e) => {
-          if (e.target === deleteModal) {
-            hideDeleteModal();
-          }
-        });
-        
+        document.getElementById('deleteCharacterBtn').addEventListener('click', () => toggleModal('deleteModal', true));
+        document.getElementById('cancelDeleteBtn').addEventListener('click', () => toggleModal('deleteModal', false));
+        document.getElementById('confirmDeleteBtn').addEventListener('click', deleteCharacter);
         characterNameInput.addEventListener('input', debouncedSaveCharacter);
         characterContentInput.addEventListener('input', debouncedSaveCharacter);
       }
 
-      // Update word count display
-      function updateWordCount(textarea, countElement) {
+      const updateWordCount = (textarea, countElement) => {
         const count = countWords(textarea.value);
         countElement.textContent = `${count} word${count !== 1 ? 's' : ''}`;
-      }
+      };
 
-      // Initialize Story Panel
       function initStoryPanel() {
-        const savedText = localStorage.getItem(STORAGE_KEYS.mainText) || '';
-        storyEditor.value = savedText;
+        storyEditor.value = localStorage.getItem(STORAGE_KEYS.mainText) || '';
         updateWordCount(storyEditor, storyWordCount);
-
-        const debouncedSave = debounce(() => {
-          localStorage.setItem(STORAGE_KEYS.mainText, storyEditor.value);
-          showSaveIndicator();
-        }, 500);
-
-        storyEditor.addEventListener('input', () => {
-          updateWordCount(storyEditor, storyWordCount);
-          debouncedSave();
-        });
+        bindAutosave(storyEditor, STORAGE_KEYS.mainText, () => updateWordCount(storyEditor, storyWordCount));
       }
 
-      // Initialize Plot Map Panel
       function initPlotmapPanel() {
-        const savedText = localStorage.getItem(STORAGE_KEYS.plotmap) || '';
-        plotmapEditor.value = savedText;
+        plotmapEditor.value = localStorage.getItem(STORAGE_KEYS.plotmap) || '';
         updateWordCount(plotmapEditor, plotmapWordCount);
-
-        const debouncedSave = debounce(() => {
-          localStorage.setItem(STORAGE_KEYS.plotmap, plotmapEditor.value);
-          showSaveIndicator();
-        }, 500);
-
-        plotmapEditor.addEventListener('input', () => {
-          updateWordCount(plotmapEditor, plotmapWordCount);
-          debouncedSave();
-        });
+        bindAutosave(plotmapEditor, STORAGE_KEYS.plotmap, () => updateWordCount(plotmapEditor, plotmapWordCount));
       }
 
-      // Chat Panel - System Prompts
+      // Chat Settings
       let systemPrompts = [];
       let currentEditingPromptId = null;
 
-      function loadSystemPrompts() {
+      const loadSystemPrompts = () => {
         try {
-          const data = localStorage.getItem(STORAGE_KEYS.systemPrompts);
-          systemPrompts = data ? JSON.parse(data) : [];
+          systemPrompts = JSON.parse(localStorage.getItem(STORAGE_KEYS.systemPrompts)) || [];
         } catch (e) {
           systemPrompts = [];
         }
-      }
+      };
 
-      function saveSystemPrompts() {
+      const saveSystemPrompts = () => {
         localStorage.setItem(STORAGE_KEYS.systemPrompts, JSON.stringify(systemPrompts));
         showSaveIndicator();
-      }
+      };
 
       function generateChatPrompt() {
         let prompt = '';
+        const includesStory = document.getElementById('chatIncludeStory').checked;
+        const includesPlotmap = document.getElementById('chatIncludePlotmap').checked;
 
-        // Add selected system prompt first (radio button - only one selectable, or none)
-        const selectedPrompt = document.querySelector('.chat-settings-item input[name="systemPrompt"]:checked');
-        if (selectedPrompt && selectedPrompt.value) {
-          const promptId = selectedPrompt.dataset.id;
-          const promptObj = systemPrompts.find(p => p.id === promptId);
-          if (promptObj) {
-            prompt += `=== SYSTEM PROMPT: ${promptObj.name} ===\n${promptObj.content}\n\n`;
-          }
+        if (includesStory || includesPlotmap) {
+          prompt += `=== SYSTEM INSTRUCTIONS: HYPER-PRECISE SEARCH/REPLACE EDITS ===
+You are an expert editor. When making modifications, corrections, additions, or rewrites to the MAIN STORY or PLOT MAP based on the user's request, do NOT rewrite entire paragraphs.
+Instead, generate your edits using highly localized, minimal SEARCH/REPLACE blocks.
+
+Format every single edit exactly as follows:
+
+<<<<<<< SEARCH
+[Exact, smallest unique segment of existing text containing the target sentence/phrase]
+=======
+[The new revised text]
+>>>>>>> REPLACE
+
+CRITICAL TARGETING RULES:
+1. MAXIMIZE GRANULARITY: If you are editing only a single sentence, your SEARCH block must contain ONLY that single sentence. Do NOT include surrounding unaffected sentences or the rest of the paragraph unless required for search uniqueness.
+2. BE EXTREMELY TARGETED: Smaller blocks process faster, avoid token waste, and prevent matching conflicts. Pinpoint changes down to the exact phrase, sentence, or word being edited.
+3. TO INSERT TEXT: Define a tiny, 1-sentence SEARCH anchor adjacent to the insertion point. In the REPLACE area, repeat the anchor and include the new text immediately alongside it.
+4. TO DELETE TEXT: Place the targeted text inside the SEARCH block and leave the space between ======= and >>>>>>> REPLACE entirely empty.
+5. STRICT CHARACTER MATCHING: The SEARCH block must match the original text character-for-character, including spacing, punctuation, and line breaks.
+
+[EXAMPLES]
+Original Paragraph: "The old house stood on the hill. Rain lashed against the cracked window panes. Inside, the fire was dying."
+
+❌ BAD (Wastes tokens and is fragile by rewriting a whole paragraph for a 1-sentence change):
+<<<<<<< SEARCH
+The old house stood on the hill. Rain lashed against the cracked window panes. Inside, the fire was dying.
+=======
+The old house stood on the hill. Thunder roared as rain lashed against the cracked window panes. Inside, the fire was dying.
+>>>>>>> REPLACE
+
+✔ GOOD (Precise, sentence-level edit):
+<<<<<<< SEARCH
+Rain lashed against the cracked window panes.
+=======
+Thunder roared as rain lashed against the cracked window panes.
+>>>>>>> REPLACE\n\n`;
         }
 
-        // Add selected characters
-        const selectedChars = document.querySelectorAll('.chat-settings-item input[data-char-id]:checked');
-        const selectedCharIds = [];
-        selectedChars.forEach(checkbox => {
-          if (checkbox.dataset.charId) {
-            selectedCharIds.push(checkbox.dataset.charId);
-          }
-        });
+        if (selectedSystemPromptId) {
+          const promptObj = systemPrompts.find(p => p.id === selectedSystemPromptId);
+          if (promptObj) prompt += `=== SYSTEM PROMPT: ${promptObj.name} ===\n${promptObj.content}\n\n`;
+        }
 
-        if (selectedCharIds.length > 0) {
+        if (selectedChatCharacterIds.size > 0) {
           prompt += `=== CHARACTERS ===\n`;
-          selectedCharIds.forEach(charId => {
+          selectedChatCharacterIds.forEach(charId => {
             const char = characters.find(c => c.id === charId);
-            if (char) {
-              prompt += `\n--- ${char.name || 'Unnamed Character'} ---\n${char.content || ''}\n`;
-            }
+            if (char) prompt += `\n--- ${char.name || 'Unnamed Character'} ---\n${char.content || ''}\n`;
           });
           prompt += '\n';
         }
 
-        // Add plot map first (user wants plot map before main story)
-        if (document.getElementById('chatIncludePlotmap').checked) {
-          const plotmapContent = plotmapEditor.value.trim();
-          if (plotmapContent) {
-            prompt += `=== PLOT MAP ===\n${plotmapContent}\n\n`;
-          }
+        if (includesPlotmap && plotmapEditor.value.trim()) {
+          prompt += `=== PLOT MAP ===\n${plotmapEditor.value.trim()}\n\n`;
         }
 
-        // Add main story if checkbox checked
-        if (document.getElementById('chatIncludeStory').checked) {
-          const storyContent = storyEditor.value.trim();
-          if (storyContent) {
-            prompt += `=== MAIN STORY ===\n${storyContent}\n\n`;
-          }
+        if (includesStory && storyEditor.value.trim()) {
+          prompt += `=== MAIN STORY ===\n${storyEditor.value.trim()}\n\n`;
         }
 
         return prompt;
@@ -1554,113 +620,55 @@
         const container = document.getElementById('chatSelectedContext');
         container.innerHTML = '';
 
-        // Add system prompt tag (only if one is selected with a value)
-        const selectedPrompt = document.querySelector('.chat-settings-item input[name="systemPrompt"]:checked');
-        if (selectedPrompt && selectedPrompt.value) {
-          const promptId = selectedPrompt.dataset.id;
-          const promptObj = systemPrompts.find(p => p.id === promptId);
-          if (promptObj) {
-            const tag = document.createElement('span');
-            tag.className = 'chat-context-tag system-prompt';
-            tag.textContent = promptObj.name;
-            container.appendChild(tag);
-          }
+        if (selectedSystemPromptId) {
+          const promptObj = systemPrompts.find(p => p.id === selectedSystemPromptId);
+          if (promptObj) container.innerHTML += `<span class="tag system">${promptObj.name}</span>`;
         }
 
-        // Add character tags
-        const selectedChars = document.querySelectorAll('.chat-settings-item input[data-char-id]:checked');
-        selectedChars.forEach(checkbox => {
-          if (checkbox.dataset.charId) {
-            const char = characters.find(c => c.id === checkbox.dataset.charId);
-            if (char) {
-              const tag = document.createElement('span');
-              tag.className = 'chat-context-tag character';
-              tag.textContent = char.name || 'Unnamed';
-              container.appendChild(tag);
-            }
-          }
+        selectedChatCharacterIds.forEach(charId => {
+          const char = characters.find(c => c.id === charId);
+          if (char) container.innerHTML += `<span class="tag character">${char.name || 'Unnamed'}</span>`;
         });
 
-        // Add plot map tag first (before story)
         if (document.getElementById('chatIncludePlotmap').checked) {
-          const tag = document.createElement('span');
-          tag.className = 'chat-context-tag plotmap';
-          tag.textContent = 'Plot Map';
-          container.appendChild(tag);
+          container.innerHTML += `<span class="tag plotmap">Plot Map</span>`;
         }
-
-        // Add story tag
         if (document.getElementById('chatIncludeStory').checked) {
-          const tag = document.createElement('span');
-          tag.className = 'chat-context-tag story';
-          tag.textContent = 'Story';
-          container.appendChild(tag);
+          container.innerHTML += `<span class="tag story">Story</span>`;
         }
       }
 
       function renderChatSystemPromptList() {
         const container = document.getElementById('chatSystemPromptList');
-        container.innerHTML = '';
+        const promptsHTML = systemPrompts.map(p => `
+          <label class="list-item">
+            <input type="radio" name="systemPrompt" data-id="${p.id}" value="${p.id}" ${selectedSystemPromptId === p.id ? 'checked' : ''}>
+            <span>${p.name}</span>
+            <button class="delete-prompt-btn" data-id="${p.id}" style="padding: 2px 6px; font-size:10px;">Edit</button>
+          </label>`).join('');
 
-        // Add "None" option first - allows user to deselect
-        const noneItem = document.createElement('label');
-        noneItem.className = 'chat-settings-item';
-        noneItem.innerHTML = `
-          <input type="radio" name="systemPrompt" value="" checked>
-          <span>None</span>
-        `;
-        container.appendChild(noneItem);
-
-        if (systemPrompts.length === 0) {
-          return;
-        }
-
-        systemPrompts.forEach(prompt => {
-          const item = document.createElement('label');
-          item.className = 'chat-settings-item';
-          item.innerHTML = `
-            <input type="radio" name="systemPrompt" data-id="${prompt.id}">
-            <span>${prompt.name}</span>
-            <button class="delete-prompt-btn" data-id="${prompt.id}" title="Edit">✕</button>
-          `;
-          container.appendChild(item);
-        });
+        container.innerHTML = `
+          <label class="list-item">
+            <input type="radio" name="systemPrompt" value="" ${selectedSystemPromptId === "" ? 'checked' : ''}>
+            <span>None</span>
+          </label>${promptsHTML}`;
       }
 
       function renderChatCharacterList() {
         const container = document.getElementById('chatCharacterList');
-        container.innerHTML = '';
-
         if (characters.length === 0) {
-          container.innerHTML = '<div class="chat-settings-item" style="color: var(--text-secondary); font-style: italic;">No characters yet</div>';
+          container.innerHTML = '<div style="color:var(--text-secondary); font-style:italic; padding:8px;">No characters yet</div>';
           return;
         }
-
-        characters.forEach(char => {
-          const item = document.createElement('label');
-          item.className = 'chat-settings-item';
-          item.innerHTML = `
-            <input type="checkbox" data-char-id="${char.id}">
+        container.innerHTML = characters.map(char => `
+          <label class="list-item">
+            <input type="checkbox" data-char-id="${char.id}" ${selectedChatCharacterIds.has(char.id) ? 'checked' : ''}>
             <span>${char.name || 'Unnamed'}</span>
-          `;
-          container.appendChild(item);
-        });
-      }
-
-      function openChatSettings() {
-        document.getElementById('chatSettingsOverlay').classList.add('visible');
-        document.getElementById('chatSettingsPanel').classList.add('open');
-      }
-
-      function closeChatSettings() {
-        document.getElementById('chatSettingsOverlay').classList.remove('visible');
-        document.getElementById('chatSettingsPanel').classList.remove('open');
+          </label>`).join('');
       }
 
       function showSystemPromptModal(editId) {
         currentEditingPromptId = editId || null;
-        const modal = document.getElementById('systemPromptModal');
-        const title = document.getElementById('systemPromptModalTitle');
         const nameInput = document.getElementById('systemPromptNameInput');
         const contentInput = document.getElementById('systemPromptContentInput');
         const deleteBtn = document.getElementById('deleteSystemPromptBtn');
@@ -1668,32 +676,25 @@
         if (editId) {
           const prompt = systemPrompts.find(p => p.id === editId);
           if (prompt) {
-            title.textContent = 'Edit System Prompt';
+            document.getElementById('systemPromptModalTitle').textContent = 'Edit System Prompt';
             nameInput.value = prompt.name;
             contentInput.value = prompt.content;
             deleteBtn.style.display = 'block';
           }
         } else {
-          title.textContent = 'Add System Prompt';
+          document.getElementById('systemPromptModalTitle').textContent = 'Add System Prompt';
           nameInput.value = '';
           contentInput.value = '';
           deleteBtn.style.display = 'none';
         }
-
-        modal.classList.add('visible');
+        toggleModal('systemPromptModal', true);
         nameInput.focus();
-      }
-
-      function hideSystemPromptModal() {
-        document.getElementById('systemPromptModal').classList.remove('visible');
-        currentEditingPromptId = null;
       }
 
       function saveSystemPrompt() {
         const nameInput = document.getElementById('systemPromptNameInput');
-        const contentInput = document.getElementById('systemPromptContentInput');
         const name = nameInput.value.trim();
-        const content = contentInput.value.trim();
+        const content = document.getElementById('systemPromptContentInput').value.trim();
 
         if (!name) {
           nameInput.focus();
@@ -1702,32 +703,24 @@
 
         if (currentEditingPromptId) {
           const prompt = systemPrompts.find(p => p.id === currentEditingPromptId);
-          if (prompt) {
-            prompt.name = name;
-            prompt.content = content;
-          }
+          if (prompt) { prompt.name = name; prompt.content = content; }
         } else {
-          systemPrompts.push({
-            id: generateId(),
-            name: name,
-            content: content
-          });
+          systemPrompts.push({ id: generateId(), name, content });
         }
 
         saveSystemPrompts();
         renderChatSystemPromptList();
         updateSelectedContextTags();
-        hideSystemPromptModal();
+        toggleModal('systemPromptModal', false);
       }
 
       function deleteSystemPrompt() {
         if (!currentEditingPromptId) return;
-
         systemPrompts = systemPrompts.filter(p => p.id !== currentEditingPromptId);
         saveSystemPrompts();
         renderChatSystemPromptList();
         updateSelectedContextTags();
-        hideSystemPromptModal();
+        toggleModal('systemPromptModal', false);
       }
 
       function initChatPanel() {
@@ -1735,107 +728,428 @@
         renderChatSystemPromptList();
         renderChatCharacterList();
 
-        // Settings panel open/close
-        document.getElementById('chatSettingsBtn').addEventListener('click', openChatSettings);
-        document.getElementById('chatSettingsClose').addEventListener('click', closeChatSettings);
-        document.getElementById('chatSettingsOverlay').addEventListener('click', closeChatSettings);
+        const chatResponseInput = document.getElementById('chatResponseInput');
+        const applyEditsBtn = document.getElementById('applyEditsBtn');
+        const diffModal = document.getElementById('diffModal');
+        const diffList = document.getElementById('diffList');
+        const diffSidebar = document.getElementById('diffSidebar');
+        const confirmDiffBtn = document.getElementById('confirmDiffBtn');
+        const cancelDiffBtn = document.getElementById('cancelDiffBtn');
 
-        // System prompt list events - radio buttons handle single selection naturally
+        let pendingEdits = [];
+
+        document.getElementById('chatSettingsBtn').addEventListener('click', () => toggleModal('chatSettingsPanel', true));
+        document.getElementById('chatSettingsClose').addEventListener('click', () => toggleModal('chatSettingsPanel', false));
+
         document.getElementById('chatSystemPromptList').addEventListener('change', (e) => {
           if (e.target.type === 'radio') {
+            selectedSystemPromptId = e.target.dataset.id || "";
             updateSelectedContextTags();
           }
         });
 
         document.getElementById('chatSystemPromptList').addEventListener('click', (e) => {
           if (e.target.classList.contains('delete-prompt-btn')) {
-            const id = e.target.dataset.id;
-            const prompt = systemPrompts.find(p => p.id === id);
-            if (prompt) {
-              document.getElementById('systemPromptNameInput').value = prompt.name;
-              document.getElementById('systemPromptContentInput').value = prompt.content;
-              showSystemPromptModal(id);
-            }
+            showSystemPromptModal(e.target.dataset.id);
           }
         });
 
-        // Character list events
         document.getElementById('chatCharacterList').addEventListener('change', (e) => {
           if (e.target.type === 'checkbox') {
+            const charId = e.target.dataset.charId;
+            e.target.checked ? selectedChatCharacterIds.add(charId) : selectedChatCharacterIds.delete(charId);
             updateSelectedContextTags();
           }
         });
 
-        // Story/Plotmap checkbox events
         document.getElementById('chatIncludeStory').addEventListener('change', updateSelectedContextTags);
         document.getElementById('chatIncludePlotmap').addEventListener('change', updateSelectedContextTags);
+        document.getElementById('addSystemPromptBtn').addEventListener('click', () => showSystemPromptModal());
 
-        // Add prompt button
-        document.getElementById('addSystemPromptBtn').addEventListener('click', () => {
-          showSystemPromptModal();
-        });
-
-        // Modal events
-        document.getElementById('cancelSystemPromptBtn').addEventListener('click', hideSystemPromptModal);
+        document.getElementById('cancelSystemPromptBtn').addEventListener('click', () => toggleModal('systemPromptModal', false));
         document.getElementById('saveSystemPromptBtn').addEventListener('click', saveSystemPrompt);
         document.getElementById('deleteSystemPromptBtn').addEventListener('click', deleteSystemPrompt);
 
-        document.getElementById('systemPromptModal').addEventListener('click', (e) => {
-          if (e.target.id === 'systemPromptModal') {
-            hideSystemPromptModal();
-          }
-        });
-
-        // User prompt input with debounced save
         const chatPromptInput = document.getElementById('chatPromptInput');
-        const debouncedSavePrompt = debounce(() => {
-          localStorage.setItem('storywriter_chat_prompt', chatPromptInput.value);
-        }, 500);
+        chatPromptInput.value = localStorage.getItem(STORAGE_KEYS.chatPrompt) || '';
+        bindAutosave(chatPromptInput, STORAGE_KEYS.chatPrompt);
 
-        chatPromptInput.addEventListener('input', debouncedSavePrompt);
-
-        // Load saved prompt
-        const savedPrompt = localStorage.getItem('storywriter_chat_prompt') || '';
-        chatPromptInput.value = savedPrompt;
-
-        // Copy button - combines user's prompt with selected context
         document.getElementById('copyPromptBtn').addEventListener('click', () => {
           const userPrompt = chatPromptInput.value.trim();
           const contextPrompt = generateChatPrompt();
-
           if (!userPrompt && !contextPrompt) return;
 
-          // Combine: context first, then user's prompt at the end
-          let fullPrompt = '';
-          if (contextPrompt) {
-            fullPrompt += contextPrompt;
-          }
-          if (userPrompt) {
-            fullPrompt += `=== USER PROMPT ===\n${userPrompt}\n\n`;
-          }
-
+          const fullPrompt = (contextPrompt ? contextPrompt : '') + (userPrompt ? `=== USER REQUEST PROMPT ===\n${userPrompt}\n\n` : '');
           navigator.clipboard.writeText(fullPrompt).then(() => {
             const btn = document.getElementById('copyPromptBtn');
+            const orig = btn.innerHTML;
             btn.classList.add('copied');
-            btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg> Copied!';
+            btn.innerHTML = 'Copied!';
             setTimeout(() => {
               btn.classList.remove('copied');
-              btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9.75a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" /></svg> Copy to Clipboard';
+              btn.innerHTML = orig;
             }, 2000);
           });
         });
 
-        // Initial context tags update
+        // Search Match Normalizer Helpers
+        const normalize = (text, clean) => {
+          const norm = text.replace(/\r\n/g, '\n');
+          return clean ? norm.split('\n').map(l => l.trimEnd()).join('\n') : norm;
+        };
+
+        const testTextReplacement = (target, search) => 
+          target.includes(search) || 
+          normalize(target).includes(normalize(search)) || 
+          normalize(target, true).includes(normalize(search, true));
+
+        function applyTextReplacement(target, search, replace) {
+          if (target.includes(search)) return target.replace(search, replace);
+          
+          const nTarget = normalize(target), nSearch = normalize(search);
+          if (nTarget.includes(nSearch)) {
+            const replaced = nTarget.replace(nSearch, normalize(replace));
+            return target.includes('\r\n') ? replaced.replace(/\n/g, '\r\n') : replaced;
+          }
+
+          const cTarget = normalize(target, true), cSearch = normalize(search, true);
+          if (cTarget.includes(cSearch)) {
+            const idx = cTarget.indexOf(cSearch);
+            const replaced = cTarget.substring(0, idx) + normalize(replace, true) + cTarget.substring(idx + cSearch.length);
+            return target.includes('\r\n') ? replaced.replace(/\n/g, '\r\n') : replaced;
+          }
+          return target;
+        }
+
+        applyEditsBtn.addEventListener('click', () => {
+          const rawInput = chatResponseInput.value;
+          if (!rawInput.trim()) return;
+
+          const blockRegex = /<<<<<<<[ \t]*SEARCH\r?\n([\s\S]*?)\r?\n=======\r?\n([\s\S]*?)\r?\n(?:>>>>>>>|=======)[ \t]*\r?\n?[ \t]*REPLACE/gi;
+          let match;
+          pendingEdits = [];
+
+          while ((match = blockRegex.exec(rawInput)) !== null) {
+            const searchBlock = match[1];
+            const replaceBlock = match[2];
+            let target = 'Unknown', matched = false;
+
+            if (testTextReplacement(storyEditor.value, searchBlock)) {
+              target = 'story'; matched = true;
+            } else if (testTextReplacement(plotmapEditor.value, searchBlock)) {
+              target = 'plotmap'; matched = true;
+            }
+
+            pendingEdits.push({
+              id: generateId(), search: searchBlock, replace: replaceBlock, target, matched, selected: matched
+            });
+          }
+
+          if (pendingEdits.length === 0) {
+            updateApplyButtonUI(applyEditsBtn, "No blocks found!", "error");
+            return;
+          }
+
+          renderDiffList();
+          toggleModal('diffModal', true);
+          setTimeout(() => document.querySelectorAll('.proposed-edit, .unmatched-edit').forEach(autoResizeTextarea), 250);
+        });
+
+        function reevaluateEditMatch(edit) {
+          let matched = false, target = 'Unknown';
+          if (testTextReplacement(storyEditor.value, edit.search)) {
+            target = 'story'; matched = true;
+          } else if (testTextReplacement(plotmapEditor.value, edit.search)) {
+            target = 'plotmap'; matched = true;
+          }
+          edit.matched = matched; edit.target = target; edit.selected = matched;
+          renderDiffList();
+          setTimeout(() => document.querySelectorAll('.proposed-edit, .unmatched-edit').forEach(autoResizeTextarea), 50);
+        }
+
+        function renderDiffList() {
+          diffList.innerHTML = '';
+          diffSidebar.innerHTML = '';
+
+          pendingEdits.forEach((edit, idx) => {
+            const sidebarItem = document.createElement('div');
+            sidebarItem.className = `diff-sidebar-item ${edit.matched ? '' : 'error'}`;
+            sidebarItem.id = `diff-sidebar-item-${edit.id}`;
+            sidebarItem.innerHTML = `<span style="font-weight: 600;">#${idx + 1}</span><span>${edit.matched ? (edit.target === 'story' ? 'Story' : 'Plot Map') : 'No Match'}</span>`;
+            sidebarItem.addEventListener('click', () => {
+              const targetCard = document.getElementById(`diff-card-${edit.id}`);
+              if (targetCard) {
+                targetCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                document.querySelectorAll('.diff-sidebar-item').forEach(el => el.classList.remove('active'));
+                sidebarItem.classList.add('active');
+              }
+            });
+            diffSidebar.appendChild(sidebarItem);
+
+            const card = document.createElement('div');
+            card.className = 'diff-item';
+            card.id = `diff-card-${edit.id}`;
+            const badgeClass = edit.matched ? `tag ${edit.target}` : 'tag error';
+            const badgeText = edit.matched ? (edit.target === 'story' ? 'Story' : 'Plot Map') : 'No Match';
+
+            card.innerHTML = `
+              <div class="diff-item-header">
+                <label>
+                  <input type="checkbox" ${edit.selected ? 'checked' : ''} ${edit.matched ? '' : 'disabled'}>
+                  <span>${edit.matched ? "Apply this change" : "Failed to locate match"}</span>
+                </label>
+                <span class="${badgeClass}">${badgeText}</span>
+              </div>
+              <div class="diff-item-body">
+                ${edit.matched && edit.search.trim() ? `<div class="diff-text original">${edit.search}</div>` : ''}
+                <textarea class="diff-text ${edit.matched ? 'proposed-edit' : 'unmatched-edit'}" 
+                  placeholder="${edit.matched ? '[No text replacement - click to write/insert prose]' : 'Tweak the expected match to locate context...'}">${edit.matched ? edit.replace : edit.search}</textarea>
+                ${!edit.matched ? `<div class="diff-text proposed" style="padding:14px; font-size:14px;"><strong>Proposed Output (New):</strong>\n${edit.replace}</div>` : ''}
+              </div>`;
+
+            const checkbox = card.querySelector('input[type="checkbox"]');
+            checkbox.addEventListener('change', (e) => edit.selected = e.target.checked);
+
+            const textarea = card.querySelector('textarea');
+            textarea.addEventListener('input', (e) => {
+              autoResizeTextarea(e.target);
+              if (edit.matched) {
+                edit.replace = e.target.value;
+              } else {
+                edit.search = e.target.value;
+                reevaluateEditMatch(edit);
+              }
+            });
+            textarea.addEventListener('focus', (e) => autoResizeTextarea(e.target));
+
+            diffList.appendChild(card);
+            setTimeout(() => autoResizeTextarea(textarea), 50);
+          });
+
+          if (pendingEdits.length > 0) {
+            setTimeout(() => {
+              const first = diffSidebar.querySelector('.diff-sidebar-item');
+              if (first) first.classList.add('active');
+            }, 100);
+          }
+        }
+
+        confirmDiffBtn.addEventListener('click', () => {
+          let updatedStory = storyEditor.value;
+          let updatedPlotmap = plotmapEditor.value;
+          let wasModified = false, applyCount = 0;
+
+          pendingEdits.forEach(edit => {
+            if (edit.selected && edit.matched) {
+              if (edit.target === 'story') {
+                updatedStory = applyTextReplacement(updatedStory, edit.search, edit.replace);
+                applyCount++;
+              } else if (edit.target === 'plotmap') {
+                updatedPlotmap = applyTextReplacement(updatedPlotmap, edit.search, edit.replace);
+                applyCount++;
+              }
+            }
+          });
+
+          if (updatedStory !== storyEditor.value) {
+            storyEditor.value = updatedStory;
+            localStorage.setItem(STORAGE_KEYS.mainText, updatedStory);
+            updateWordCount(storyEditor, storyWordCount);
+            wasModified = true;
+          }
+          if (updatedPlotmap !== plotmapEditor.value) {
+            plotmapEditor.value = updatedPlotmap;
+            localStorage.setItem(STORAGE_KEYS.plotmap, updatedPlotmap);
+            updateWordCount(plotmapEditor, plotmapWordCount);
+            wasModified = true;
+          }
+          if (wasModified) showSaveIndicator();
+
+          toggleModal('diffModal', false);
+          chatResponseInput.value = '';
+          updateApplyButtonUI(applyEditsBtn, `Applied ${applyCount} changes!`, "success");
+        });
+
+        cancelDiffBtn.addEventListener('click', () => {
+          pendingEdits = [];
+          toggleModal('diffModal', false);
+        });
+
+        diffModal.addEventListener('click', (e) => {
+          if (e.target === diffModal) {
+            pendingEdits = [];
+            toggleModal('diffModal', false);
+          }
+        });
+
+        function updateApplyButtonUI(btn, msg, type) {
+          const orig = btn.innerHTML;
+          btn.disabled = true;
+          btn.style.background = type === "success" ? "var(--success)" : (type === "warning" ? "var(--warning)" : "var(--danger)");
+          btn.textContent = msg;
+          setTimeout(() => {
+            btn.disabled = false;
+            btn.style.background = "";
+            btn.innerHTML = orig;
+          }, 3000);
+        }
+
         updateSelectedContextTags();
       }
 
-      // Initialize
+      function initProjectPanel() {
+        const exportProjectBtn = document.getElementById('exportProjectBtn');
+        const importProjectBtn = document.getElementById('importProjectBtn');
+        const importProjectFile = document.getElementById('importProjectFile');
+        const newProjectBtn = document.getElementById('newProjectBtn');
+
+        const cancelNewProjectBtn = document.getElementById('cancelNewProjectBtn');
+        const confirmNewProjectBtn = document.getElementById('confirmNewProjectBtn');
+        const cancelImportBtn = document.getElementById('cancelImportBtn');
+        const confirmImportBtn = document.getElementById('confirmImportBtn');
+
+        let pendingImportData = null;
+
+        // Export Functionality
+        exportProjectBtn.addEventListener('click', () => {
+          const projectData = {
+            version: 1,
+            mainText: localStorage.getItem(STORAGE_KEYS.mainText) || '',
+            characters: JSON.parse(localStorage.getItem(STORAGE_KEYS.characters)) || [],
+            plotmap: localStorage.getItem(STORAGE_KEYS.plotmap) || '',
+            systemPrompts: JSON.parse(localStorage.getItem(STORAGE_KEYS.systemPrompts)) || [],
+            chatPrompt: localStorage.getItem(STORAGE_KEYS.chatPrompt) || ''
+          };
+
+          const jsonString = JSON.stringify(projectData, null, 2);
+          const blob = new Blob([jsonString], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `story_project_${new Date().toISOString().slice(0, 10)}.json`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        });
+
+        // Trigger file input
+        importProjectBtn.addEventListener('click', () => {
+          importProjectFile.click();
+        });
+
+        // Handle file loading
+        importProjectFile.addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+
+          const reader = new FileReader();
+          reader.onload = function(event) {
+            try {
+              const data = JSON.parse(event.target.result);
+              // Basic structure evaluation
+              if (data && (typeof data.mainText === 'string' || data.characters || data.plotmap)) {
+                pendingImportData = data;
+                toggleModal('importModal', true);
+              } else {
+                alert('Invalid project schema. Please select a valid JSON backup from this app.');
+              }
+            } catch (err) {
+              alert('Could not parse the selected file correctly as JSON.');
+            }
+          };
+          reader.readAsText(file);
+          e.target.value = ''; // Reset target selection
+        });
+
+        // Confirm loading the file
+        confirmImportBtn.addEventListener('click', () => {
+          if (!pendingImportData) return;
+
+          localStorage.setItem(STORAGE_KEYS.mainText, pendingImportData.mainText || '');
+          localStorage.setItem(STORAGE_KEYS.characters, JSON.stringify(pendingImportData.characters || []));
+          localStorage.setItem(STORAGE_KEYS.plotmap, pendingImportData.plotmap || '');
+          localStorage.setItem(STORAGE_KEYS.systemPrompts, JSON.stringify(pendingImportData.systemPrompts || []));
+          localStorage.setItem(STORAGE_KEYS.chatPrompt, pendingImportData.chatPrompt || '');
+
+          reloadApp();
+          toggleModal('importModal', false);
+          pendingImportData = null;
+          showSaveIndicator();
+          switchTab('story');
+        });
+
+        cancelImportBtn.addEventListener('click', () => {
+          pendingImportData = null;
+          toggleModal('importModal', false);
+        });
+
+        // Reset workspace (New project configuration)
+        newProjectBtn.addEventListener('click', () => {
+          toggleModal('newProjectModal', true);
+        });
+
+        confirmNewProjectBtn.addEventListener('click', () => {
+          localStorage.setItem(STORAGE_KEYS.mainText, '');
+          localStorage.setItem(STORAGE_KEYS.characters, JSON.stringify([]));
+          localStorage.setItem(STORAGE_KEYS.plotmap, '');
+          localStorage.setItem(STORAGE_KEYS.systemPrompts, JSON.stringify([]));
+          localStorage.setItem(STORAGE_KEYS.chatPrompt, '');
+
+          reloadApp();
+          toggleModal('newProjectModal', false);
+          showSaveIndicator();
+          switchTab('story');
+        });
+
+        cancelNewProjectBtn.addEventListener('click', () => {
+          toggleModal('newProjectModal', false);
+        });
+      }
+
+      function reloadApp() {
+        // Sync local arrays & system states from updated storage values
+        loadCharacters();
+        loadSystemPrompts();
+
+        currentCharacterId = null;
+        selectedChatCharacterIds.clear();
+        selectedSystemPromptId = "";
+
+        // Refill workspace inputs
+        storyEditor.value = localStorage.getItem(STORAGE_KEYS.mainText) || '';
+        updateWordCount(storyEditor, storyWordCount);
+
+        plotmapEditor.value = localStorage.getItem(STORAGE_KEYS.plotmap) || '';
+        updateWordCount(plotmapEditor, plotmapWordCount);
+
+        const chatPromptInput = document.getElementById('chatPromptInput');
+        if (chatPromptInput) {
+          chatPromptInput.value = localStorage.getItem(STORAGE_KEYS.chatPrompt) || '';
+        }
+
+        const chatResponseInput = document.getElementById('chatResponseInput');
+        if (chatResponseInput) {
+          chatResponseInput.value = '';
+        }
+
+        characterNameInput.value = '';
+        characterContentInput.value = '';
+
+        // Force UI updates
+        showCharacterList();
+        renderChatSystemPromptList();
+        renderChatCharacterList();
+        updateSelectedContextTags();
+      }
+
       function init() {
         initTabs();
         initStoryPanel();
         initCharacterPanel();
         initPlotmapPanel();
         initChatPanel();
+        initProjectPanel();
       }
 
       init();
